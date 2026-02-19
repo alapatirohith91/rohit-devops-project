@@ -1,0 +1,28 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 16.170.37.144
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd rohit-devops-project
+            git pull
+            sudo docker stop $(sudo docker ps -q) || true
+            sudo docker rm $(sudo docker ps -aq) || true
+            sudo docker build -t rohit-devops .
+            sudo docker run -d -p 80:80 rohit-devops
